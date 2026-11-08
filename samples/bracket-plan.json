@@ -1,0 +1,13 @@
+{
+  "partNumber": "BRK-1042",
+  "description": "Sensor mounting bracket, 6082-T6 aluminium",
+  "unit": "mm",
+  "features": [
+    { "name": "Bore Ø12 H7", "nominal": 12.000, "upper": 0.018, "lower": 0.000 },
+    { "name": "Spigot Ø8 g6", "nominal": 8.000, "upper": -0.005, "lower": -0.014 },
+    { "name": "Overall length", "nominal": 85.00, "upper": 0.10, "lower": -0.10 },
+    { "name": "Hole spacing", "nominal": 40.00, "upper": 0.05, "lower": -0.05 },
+    { "name": "Slot width", "nominal": 6.000, "upper": 0.030, "lower": 0.010 },
+    { "name": "Thickness", "nominal": 10.00, "upper": 0.05, "lower": -0.05 }
+  ]
+}

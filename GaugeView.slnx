@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/GaugeView.Core/GaugeView.Core.csproj" />
+    <Project Path="src/GaugeView.Presentation/GaugeView.Presentation.csproj" />
+    <Project Path="src/GaugeView.Wpf/GaugeView.Wpf.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/GaugeView.Core.Tests/GaugeView.Core.Tests.csproj" />
+    <Project Path="tests/GaugeView.Presentation.Tests/GaugeView.Presentation.Tests.csproj" />
+  </Folder>
+</Solution>

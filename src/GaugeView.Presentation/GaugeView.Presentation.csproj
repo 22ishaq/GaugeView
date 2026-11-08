@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- View models and commands. Deliberately no WPF reference, so they are unit-tested on any OS. -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\GaugeView.Core\GaugeView.Core.csproj" />
+  </ItemGroup>
+
+</Project>

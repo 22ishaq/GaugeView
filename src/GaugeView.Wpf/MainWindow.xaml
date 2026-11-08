@@ -1,0 +1,227 @@
+<Window x:Class="GaugeView.Wpf.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="clr-namespace:GaugeView.Presentation;assembly=GaugeView.Presentation"
+        xmlns:conv="clr-namespace:GaugeView.Wpf.Converters"
+        mc:Ignorable="d"
+        d:DataContext="{d:DesignInstance Type=vm:MainViewModel}"
+        Title="GaugeView – Measurement Inspection"
+        Width="1280" Height="820" MinWidth="980" MinHeight="620"
+        WindowStartupLocation="CenterScreen"
+        Background="#F4F5F7" FontFamily="Segoe UI" FontSize="13">
+
+    <Window.Resources>
+        <Style x:Key="Card" TargetType="Border">
+            <Setter Property="Background" Value="White" />
+            <Setter Property="BorderBrush" Value="#DADDE3" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="4" />
+            <Setter Property="Padding" Value="14,8" />
+            <Setter Property="Margin" Value="0,0,10,0" />
+            <Setter Property="MinWidth" Value="110" />
+        </Style>
+        <Style x:Key="CardLabel" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#5F6B7A" />
+            <Setter Property="FontSize" Value="12" />
+        </Style>
+        <Style x:Key="CardValue" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="24" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+        </Style>
+        <Style x:Key="Badge" TargetType="Border">
+            <Setter Property="CornerRadius" Value="3" />
+            <Setter Property="Padding" Value="7,1" />
+            <Setter Property="HorizontalAlignment" Value="Left" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+        <Style x:Key="BadgeText" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+        </Style>
+        <Style x:Key="EditableCell" TargetType="DataGridCell">
+            <Setter Property="Background" Value="#FFF8E1" />
+            <Setter Property="Foreground" Value="Black" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+        </Style>
+        <Style TargetType="DataGrid">
+            <Setter Property="AutoGenerateColumns" Value="False" />
+            <Setter Property="CanUserAddRows" Value="False" />
+            <Setter Property="CanUserDeleteRows" Value="False" />
+            <Setter Property="CanUserResizeRows" Value="False" />
+            <Setter Property="HeadersVisibility" Value="Column" />
+            <Setter Property="GridLinesVisibility" Value="Horizontal" />
+            <Setter Property="HorizontalGridLinesBrush" Value="#ECEEF1" />
+            <Setter Property="BorderBrush" Value="#DADDE3" />
+            <Setter Property="Background" Value="White" />
+            <Setter Property="RowHeight" Value="28" />
+            <Setter Property="SelectionMode" Value="Single" />
+        </Style>
+    </Window.Resources>
+
+    <DockPanel>
+        <ToolBarTray DockPanel.Dock="Top" Background="White" IsLocked="True">
+            <ToolBar Background="White">
+                <Button Content="Open plan…" Command="{Binding OpenPlanCommand}" Padding="8,4" />
+                <Button Content="Import measurements…" Command="{Binding ImportMeasurementsCommand}" Padding="8,4" />
+                <Button Content="Add part" Command="{Binding AddPartCommand}" Padding="8,4" />
+                <Button Content="Export report…" Command="{Binding ExportReportCommand}" Padding="8,4" />
+                <Separator />
+                <Button Content="Load sample" Command="{Binding LoadSampleCommand}" Padding="8,4" />
+                <Separator />
+                <TextBlock Text="Warn at" VerticalAlignment="Center" Margin="8,0,6,0" />
+                <Slider Width="140" Minimum="50" Maximum="100" TickFrequency="5" IsSnapToTickEnabled="True"
+                        VerticalAlignment="Center" Value="{Binding WarningThresholdPercent}"
+                        ToolTip="An in-spec reading that uses this much of its tolerance or more is flagged amber." />
+                <TextBlock Text="{Binding WarningThresholdPercent, StringFormat={}{0:0}% of tolerance}"
+                           VerticalAlignment="Center" Margin="6,0" />
+            </ToolBar>
+        </ToolBarTray>
+
+        <StatusBar DockPanel.Dock="Bottom" Background="White">
+            <StatusBarItem Content="{Binding StatusMessage}" />
+        </StatusBar>
+
+        <Grid Margin="14">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="210" />
+            </Grid.RowDefinitions>
+
+            <TextBlock Text="{Binding PlanTitle}" FontSize="18" FontWeight="SemiBold" Margin="0,0,0,10" />
+
+            <!-- Summary cards -->
+            <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,14">
+                <Border Style="{StaticResource Card}">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource CardLabel}" Text="Parts inspected" />
+                        <TextBlock Style="{StaticResource CardValue}" Text="{Binding TotalParts}" />
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource Card}">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource CardLabel}" Text="Pass" />
+                        <TextBlock Style="{StaticResource CardValue}" Text="{Binding PassCount}"
+                                   Foreground="{x:Static conv:StatusToBrushConverter.PassBrush}" />
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource Card}">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource CardLabel}" Text="Near a limit" />
+                        <TextBlock Style="{StaticResource CardValue}" Text="{Binding WarningCount}"
+                                   Foreground="{x:Static conv:StatusToBrushConverter.WarningBrush}" />
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource Card}">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource CardLabel}" Text="Out of spec" />
+                        <TextBlock Style="{StaticResource CardValue}" Text="{Binding FailCount}"
+                                   Foreground="{x:Static conv:StatusToBrushConverter.FailBrush}" />
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource Card}">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource CardLabel}" Text="Incomplete" />
+                        <TextBlock Style="{StaticResource CardValue}" Text="{Binding MissingCount}"
+                                   Foreground="{x:Static conv:StatusToBrushConverter.NoDataBrush}" />
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource Card}">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource CardLabel}" Text="Yield" />
+                        <TextBlock Style="{StaticResource CardValue}" Text="{Binding YieldPercent, StringFormat={}{0:0.0}%}" />
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+
+            <Grid Grid.Row="2">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="240" />
+                    <ColumnDefinition Width="12" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <!-- Parts, each with its overall verdict -->
+                <ListBox ItemsSource="{Binding Parts}" SelectedItem="{Binding SelectedPart}"
+                         BorderBrush="#DADDE3" Background="White">
+                    <ListBox.ItemContainerStyle>
+                        <Style TargetType="ListBoxItem">
+                            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                            <Setter Property="Padding" Value="6,4" />
+                        </Style>
+                    </ListBox.ItemContainerStyle>
+                    <ListBox.ItemTemplate>
+                        <DataTemplate DataType="{x:Type vm:PartViewModel}">
+                            <DockPanel>
+                                <Border DockPanel.Dock="Right" Style="{StaticResource Badge}"
+                                        Background="{Binding Verdict, Converter={StaticResource StatusBrush}}">
+                                    <TextBlock Style="{StaticResource BadgeText}"
+                                               Text="{Binding Verdict, Converter={StaticResource StatusText}}" />
+                                </Border>
+                                <TextBlock Text="{Binding Serial}" VerticalAlignment="Center" />
+                            </DockPanel>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+
+                <!-- Feature results for the selected part; the Measured column is editable -->
+                <DataGrid Grid.Column="2" ItemsSource="{Binding SelectedPart.Features}">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Feature" Binding="{Binding Name}" IsReadOnly="True" Width="2*" />
+                        <DataGridTextColumn Header="Nominal" Binding="{Binding Nominal}" IsReadOnly="True" Width="*" />
+                        <DataGridTextColumn Header="Tolerance" Binding="{Binding ToleranceText}" IsReadOnly="True" Width="*" />
+                        <DataGridTextColumn Header="Lower limit" Binding="{Binding LowerLimit}" IsReadOnly="True" Width="*" />
+                        <DataGridTextColumn Header="Upper limit" Binding="{Binding UpperLimit}" IsReadOnly="True" Width="*" />
+                        <DataGridTextColumn Header="Measured (edit)" Binding="{Binding MeasuredText}" Width="*"
+                                            CellStyle="{StaticResource EditableCell}" />
+                        <DataGridTextColumn Header="Deviation" IsReadOnly="True" Width="*"
+                                            Binding="{Binding Deviation, StringFormat={}{0:+0.000###;-0.000###;0}}" />
+                        <DataGridTextColumn Header="Tolerance used" IsReadOnly="True" Width="*"
+                                            Binding="{Binding ToleranceUsedPercent, StringFormat={}{0:0.0}%}" />
+                        <DataGridTemplateColumn Header="Status" Width="90">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Border Style="{StaticResource Badge}"
+                                            Background="{Binding Status, Converter={StaticResource StatusBrush}}">
+                                        <TextBlock Style="{StaticResource BadgeText}"
+                                                   Text="{Binding Status, Converter={StaticResource StatusText}}" />
+                                    </Border>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Grid>
+
+            <TextBlock Grid.Row="3" Margin="0,14,0,6" FontWeight="SemiBold"
+                       Text="Process capability across all parts (Cpk of 1.33 or more is capable)" />
+
+            <DataGrid Grid.Row="4" ItemsSource="{Binding Capability}" IsReadOnly="True">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Feature" Binding="{Binding Feature.Name}" Width="2*" />
+                    <DataGridTextColumn Header="n" Binding="{Binding SampleCount}" Width="0.5*" />
+                    <DataGridTextColumn Header="Mean" Binding="{Binding Mean, StringFormat={}{0:0.0000}}" Width="*" />
+                    <DataGridTextColumn Header="Std dev (σ)" Binding="{Binding StandardDeviation, StringFormat={}{0:0.00000}}" Width="*" />
+                    <DataGridTextColumn Header="Cp" Binding="{Binding Cp, StringFormat={}{0:0.00}}" Width="*" />
+                    <DataGridTextColumn Header="Cpk" Binding="{Binding Cpk, StringFormat={}{0:0.00}}" Width="*" />
+                    <DataGridTemplateColumn Header="Rating" Width="120">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <Border Style="{StaticResource Badge}"
+                                        Background="{Binding Rating, Converter={StaticResource StatusBrush}}">
+                                    <TextBlock Style="{StaticResource BadgeText}"
+                                               Text="{Binding Rating, Converter={StaticResource StatusText}}" />
+                                </Border>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                </DataGrid.Columns>
+            </DataGrid>
+        </Grid>
+    </DockPanel>
+</Window>

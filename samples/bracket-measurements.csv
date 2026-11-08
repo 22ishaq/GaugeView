@@ -1,0 +1,73 @@
+# BRK-1042 sensor mounting bracket: readings from CMM 2, shift A
+serial,feature,value
+BRK-0001,Bore Ø12 H7,12.008
+BRK-0001,Spigot Ø8 g6,7.991
+BRK-0001,Overall length,85.02
+BRK-0001,Hole spacing,40.01
+BRK-0001,Slot width,6.019
+BRK-0001,Thickness,10.01
+BRK-0002,Bore Ø12 H7,12.010
+BRK-0002,Spigot Ø8 g6,7.990
+BRK-0002,Overall length,84.98
+BRK-0002,Hole spacing,39.99
+BRK-0002,Slot width,6.021
+BRK-0002,Thickness,9.99
+BRK-0003,Bore Ø12 H7,12.007
+BRK-0003,Spigot Ø8 g6,7.992
+BRK-0003,Overall length,85.03
+BRK-0003,Hole spacing,40.02
+BRK-0003,Slot width,6.018
+BRK-0003,Thickness,10.02
+BRK-0004,Bore Ø12 H7,12.017
+BRK-0004,Spigot Ø8 g6,7.990
+BRK-0004,Overall length,85.01
+BRK-0004,Hole spacing,40.00
+BRK-0004,Slot width,6.020
+BRK-0004,Thickness,10.00
+BRK-0005,Bore Ø12 H7,12.009
+BRK-0005,Spigot Ø8 g6,7.989
+BRK-0005,Overall length,85.12
+BRK-0005,Hole spacing,40.01
+BRK-0005,Slot width,6.022
+BRK-0005,Thickness,10.01
+BRK-0006,Bore Ø12 H7,12.011
+BRK-0006,Spigot Ø8 g6,7.991
+BRK-0006,Overall length,84.99
+BRK-0006,Hole spacing,40.05
+BRK-0006,Slot width,6.020
+BRK-0006,Thickness,9.98
+BRK-0007,Bore Ø12 H7,12.006
+BRK-0007,Spigot Ø8 g6,7.993
+BRK-0007,Overall length,85.04
+BRK-0007,Hole spacing,39.98
+BRK-0007,Slot width,6.017
+BRK-0007,Thickness,10.03
+BRK-0008,Bore Ø12 H7,12.012
+BRK-0008,Spigot Ø8 g6,7.996
+BRK-0008,Overall length,85.00
+BRK-0008,Hole spacing,40.01
+BRK-0008,Slot width,6.023
+BRK-0008,Thickness,10.00
+BRK-0009,Bore Ø12 H7,12.008
+BRK-0009,Spigot Ø8 g6,7.990
+BRK-0009,Overall length,84.97
+BRK-0009,Hole spacing,40.045
+BRK-0009,Slot width,6.019
+BRK-0009,Thickness,10.01
+BRK-0010,Bore Ø12 H7,12.010
+BRK-0010,Spigot Ø8 g6,7.991
+BRK-0010,Overall length,85.02
+BRK-0010,Hole spacing,40.00
+BRK-0010,Slot width,6.009
+BRK-0010,Thickness,10.02
+BRK-0011,Bore Ø12 H7,12.009
+BRK-0011,Spigot Ø8 g6,7.992
+BRK-0011,Overall length,85.01
+BRK-0011,Hole spacing,39.99
+BRK-0011,Slot width,6.021
+BRK-0011,Thickness,10.00
+BRK-0012,Bore Ø12 H7,12.007
+BRK-0012,Spigot Ø8 g6,7.990
+BRK-0012,Overall length,84.99
+BRK-0012,Hole spacing,40.02
+BRK-0012,Slot width,6.020
