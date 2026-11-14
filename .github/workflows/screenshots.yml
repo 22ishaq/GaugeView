@@ -1,0 +1,43 @@
+name: Screenshots
+
+# Renders every tab of the app with the sample data and pushes the PNGs to screenshots/<branch>,
+# so UI changes can be reviewed without running Windows locally. The README images are copied from there.
+
+on:
+  push:
+    branches-ignore: ['screenshots/**']
+    paths: ['src/**', 'samples/**', '.github/workflows/screenshots.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  render:
+    name: Render screenshots
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - name: Build
+        run: dotnet build src/GaugeView.Wpf/GaugeView.Wpf.csproj -c Release -o app
+      - name: Render
+        shell: pwsh
+        run: |
+          $shots = Join-Path $PWD 'shots'
+          $process = Start-Process -FilePath app/GaugeView.exe -ArgumentList '--screenshots', $shots -Wait -PassThru
+          if (Test-Path "$shots/error.txt") { Get-Content "$shots/error.txt"; exit 1 }
+          if ($process.ExitCode -ne 0) { throw "GaugeView exited with code $($process.ExitCode)" }
+          Get-ChildItem $shots
+      - name: Push to screenshots/${{ github.ref_name }}
+        shell: pwsh
+        working-directory: shots
+        run: |
+          git init -b main
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add *.png
+          git commit -m "Screenshots of ${{ github.sha }}"
+          git push --force "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" "HEAD:refs/heads/screenshots/${{ github.ref_name }}"

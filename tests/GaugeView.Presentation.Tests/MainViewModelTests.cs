@@ -142,8 +142,9 @@ public class MainViewModelTests
 
         vm.LoadSampleCommand.Execute(null);
 
-        Assert.Equal(12, vm.TotalParts);
+        Assert.Equal(30, vm.TotalParts);
         Assert.Equal(6, vm.Capability.Count);
+        Assert.Equal(6, vm.Spc.Charts.Count);
         Assert.Null(dialogs.LastErrorTitle);
     }
 

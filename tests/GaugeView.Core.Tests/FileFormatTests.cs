@@ -131,10 +131,31 @@ public class SampleDataTests
 
         var parts = new Inspector(plan, new ToleranceChecker()).InspectAll(measurements);
 
-        Assert.Equal(12, parts.Count);
-        Assert.Equal(5, parts.Count(p => p.Verdict == InspectionStatus.Pass));
-        Assert.Equal(3, parts.Count(p => p.Verdict == InspectionStatus.Warning));
-        Assert.Equal(3, parts.Count(p => p.Verdict == InspectionStatus.Fail));
+        Assert.Equal(30, parts.Count);
+        Assert.Equal(20, parts.Count(p => p.Verdict == InspectionStatus.Pass));
+        Assert.Equal(5, parts.Count(p => p.Verdict == InspectionStatus.Warning));
+        Assert.Equal(4, parts.Count(p => p.Verdict == InspectionStatus.Fail));
         Assert.Single(parts, p => p.Verdict == InspectionStatus.Missing);
+    }
+
+    [Fact]
+    public void Sample_bore_drift_is_flagged_before_the_first_bore_goes_out_of_spec()
+    {
+        var plan = InspectionPlanReader.ReadFile(TestValues.SamplePath("bracket-plan.json"));
+        var parts = new Inspector(plan, new ToleranceChecker())
+            .InspectAll(MeasurementCsvReader.ReadFile(TestValues.SamplePath("bracket-measurements.csv")));
+        var bore = plan.FindFeature("Bore Ø12 H7")!;
+
+        var chart = ControlChartCalculator.Calculate(bore, parts);
+        var trend = chart.Signals.First(s => s.Rule == SpcRule.Trend);
+        var firstScrap = parts.First(p => p.Results.Single(r => r.Feature == bore).Status == InspectionStatus.Fail);
+
+        Assert.Equal("BRK-0021", trend.Serial);
+        Assert.Equal("BRK-0030", firstScrap.Serial);
+        Assert.Equal(ChartState.OutOfControl, chart.State);
+
+        var capability = CapabilityCalculator.Calculate(plan, parts).Single(c => c.Feature == bore);
+        Assert.Equal(1.20, capability.Cpk!.Value, 2);
+        Assert.Equal(0.58, capability.Ppk!.Value, 2);
     }
 }

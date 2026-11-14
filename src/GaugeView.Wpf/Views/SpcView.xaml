@@ -1,0 +1,141 @@
+<UserControl x:Class="GaugeView.Wpf.Views.SpcView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:GaugeView.Presentation;assembly=GaugeView.Presentation"
+             xmlns:core="clr-namespace:GaugeView.Core;assembly=GaugeView.Core"
+             xmlns:controls="clr-namespace:GaugeView.Wpf.Controls"
+             xmlns:conv="clr-namespace:GaugeView.Wpf.Converters"
+             mc:Ignorable="d"
+             d:DataContext="{d:DesignInstance Type=vm:SpcViewModel}"
+             d:DesignWidth="1200" d:DesignHeight="640">
+    <Grid Margin="0,12,0,0">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="220" />
+            <ColumnDefinition Width="12" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <!-- One control chart per feature, with its state -->
+        <ListBox ItemsSource="{Binding Charts}" SelectedItem="{Binding SelectedChart}"
+                 ItemContainerStyle="{StaticResource ListItem}">
+            <ListBox.ItemTemplate>
+                <DataTemplate DataType="{x:Type core:ControlChart}">
+                    <DockPanel>
+                        <Border DockPanel.Dock="Right" Style="{StaticResource Badge}"
+                                Background="{Binding State, Converter={StaticResource StatusBrush}}">
+                            <TextBlock Style="{StaticResource BadgeText}"
+                                       Text="{Binding State, Converter={StaticResource StatusText}}" />
+                        </Border>
+                        <TextBlock Text="{Binding Feature.Name}" VerticalAlignment="Center" />
+                    </DockPanel>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+
+        <Grid Grid.Column="2">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <StackPanel Margin="0,0,0,10">
+                <TextBlock Style="{StaticResource SectionTitle}">
+                    <Run Text="{Binding SelectedChart.Feature.Name, Mode=OneWay}" />
+                    <Run Text="  " />
+                    <Run Text="{Binding SelectedChart.Feature.Tolerance, Mode=OneWay}" Foreground="{StaticResource MutedBrush}" FontWeight="Normal" />
+                </TextBlock>
+                <TextBlock Text="{Binding SelectedSummary}" Foreground="{StaticResource MutedBrush}" Margin="0,2,0,0" />
+            </StackPanel>
+
+            <!-- Chart statistics -->
+            <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,10">
+                <Border Style="{StaticResource Card}">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource CardLabel}" Text="Readings" />
+                        <TextBlock Style="{StaticResource StatValue}" Text="{Binding SelectedChart.Points.Count, FallbackValue=0}" />
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource Card}">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource CardLabel}" Text="Mean (X̄)" />
+                        <TextBlock Style="{StaticResource StatValue}" Text="{Binding SelectedChart.Mean, StringFormat={}{0:0.0000}, TargetNullValue=—, FallbackValue=—}" />
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource Card}">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource CardLabel}" Text="Avg moving range (MR̄)" />
+                        <TextBlock Style="{StaticResource StatValue}" Text="{Binding SelectedChart.AverageMovingRange, StringFormat={}{0:0.00000}, TargetNullValue=—, FallbackValue=—}" />
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource Card}">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource CardLabel}" Text="σ within (MR̄ / 1.128)" />
+                        <TextBlock Style="{StaticResource StatValue}" Text="{Binding SelectedChart.Sigma, StringFormat={}{0:0.00000}, TargetNullValue=—, FallbackValue=—}" />
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource Card}">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource CardLabel}" Text="UCL (X̄ + 3σ)" />
+                        <TextBlock Style="{StaticResource StatValue}" Text="{Binding SelectedChart.UpperControlLimit, StringFormat={}{0:0.0000}, TargetNullValue=—, FallbackValue=—}" />
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource Card}">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource CardLabel}" Text="LCL (X̄ − 3σ)" />
+                        <TextBlock Style="{StaticResource StatValue}" Text="{Binding SelectedChart.LowerControlLimit, StringFormat={}{0:0.0000}, TargetNullValue=—, FallbackValue=—}" />
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+
+            <Border Grid.Row="2" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" Background="White">
+                <controls:RunChart Chart="{Binding SelectedChart}" Unit="{Binding Unit}" />
+            </Border>
+
+            <!-- Signals: which part broke which rule -->
+            <DockPanel Grid.Row="3" Margin="0,10,0,0">
+                <TextBlock DockPanel.Dock="Top" FontWeight="SemiBold" Margin="0,0,0,4" Text="Signals (Nelson rules 1–3)" />
+                <Border BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" Background="White" Height="118">
+                    <Grid>
+                        <TextBlock Margin="10,8" Foreground="{StaticResource MutedBrush}"
+                                   Text="No signals: no reading of this feature broke a rule.">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding SelectedChart.Signals.Count}" Value="0">
+                                            <Setter Property="Visibility" Value="Visible" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                        <ScrollViewer VerticalScrollBarVisibility="Auto">
+                            <ItemsControl ItemsSource="{Binding SelectedChart.Signals}" Margin="8,6">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate DataType="{x:Type core:SpcSignal}">
+                                        <DockPanel Margin="0,2">
+                                            <Border Style="{StaticResource Badge}" Background="{x:Static conv:StatusToBrushConverter.WarningBrush}"
+                                                    Width="58" Margin="0,0,10,0">
+                                                <TextBlock Style="{StaticResource BadgeText}" HorizontalAlignment="Center"
+                                                           Text="{Binding Rule, Converter={StaticResource StatusText}}" />
+                                            </Border>
+                                            <TextBlock VerticalAlignment="Center">
+                                                <Run Text="Part" /> <Run Text="{Binding PartNumber, Mode=OneWay}" FontWeight="SemiBold" />
+                                                <Run Text="·" /> <Run Text="{Binding Serial, Mode=OneWay}" />
+                                                <Run Text="·" /> <Run Text="{Binding Description, Mode=OneWay}" Foreground="{StaticResource MutedBrush}" />
+                                            </TextBlock>
+                                        </DockPanel>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+                    </Grid>
+                </Border>
+            </DockPanel>
+        </Grid>
+    </Grid>
+</UserControl>

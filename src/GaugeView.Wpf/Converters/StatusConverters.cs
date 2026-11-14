@@ -5,7 +5,7 @@ using GaugeView.Core;
 
 namespace GaugeView.Wpf.Converters;
 
-/// <summary>Traffic-light colours: green for pass, amber for warning, red for fail, grey for no data.</summary>
+/// <summary>Traffic-light colours: green for good, amber for watch, red for bad, grey for no data.</summary>
 public sealed class StatusToBrushConverter : IValueConverter
 {
     public static readonly Brush PassBrush = Frozen(0x2E, 0x7D, 0x32);
@@ -13,13 +13,15 @@ public sealed class StatusToBrushConverter : IValueConverter
     public static readonly Brush FailBrush = Frozen(0xC6, 0x28, 0x28);
     public static readonly Brush NoDataBrush = Frozen(0x8A, 0x94, 0xA0);
 
-    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture) => value switch
+    public static Brush BrushFor(object? value) => value switch
     {
-        InspectionStatus.Pass or CapabilityRating.Capable => PassBrush,
-        InspectionStatus.Warning or CapabilityRating.Marginal => WarningBrush,
+        InspectionStatus.Pass or CapabilityRating.Capable or ChartState.InControl => PassBrush,
+        InspectionStatus.Warning or CapabilityRating.Marginal or ChartState.OutOfControl => WarningBrush,
         InspectionStatus.Fail or CapabilityRating.NotCapable => FailBrush,
         _ => NoDataBrush,
     };
+
+    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture) => BrushFor(value);
 
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) =>
         throw new NotSupportedException();
@@ -45,6 +47,10 @@ public sealed class StatusToTextConverter : IValueConverter
         CapabilityRating.Marginal => "MARGINAL",
         CapabilityRating.NotCapable => "NOT CAPABLE",
         CapabilityRating.InsufficientData => "NO DATA",
+        ChartState.InControl => "IN CONTROL",
+        ChartState.OutOfControl => "SIGNAL",
+        ChartState.NotEnoughData => "NO DATA",
+        SpcRule rule => $"RULE {(int)rule}",
         _ => string.Empty,
     };
 
