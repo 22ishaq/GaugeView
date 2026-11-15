@@ -61,6 +61,9 @@ internal static class ScreenshotRenderer
             vm.Spc.SelectedChart = vm.Spc.Charts.FirstOrDefault(c => c.Feature.Name.StartsWith("Bore", StringComparison.Ordinal))
                 ?? vm.Spc.Charts.FirstOrDefault();
         });
+
+        // The sample bore gauge study: marginal, with one operator reading high.
+        yield return ("gauge-rr.png", () => vm.SelectedTab = 2);
     }
 
     private static void Layout(FrameworkElement element)

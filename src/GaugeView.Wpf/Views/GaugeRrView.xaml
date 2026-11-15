@@ -1,0 +1,123 @@
+<UserControl x:Class="GaugeView.Wpf.Views.GaugeRrView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:GaugeView.Presentation;assembly=GaugeView.Presentation"
+             xmlns:controls="clr-namespace:GaugeView.Wpf.Controls"
+             mc:Ignorable="d"
+             d:DataContext="{d:DesignInstance Type=vm:GaugeRrViewModel}"
+             d:DesignWidth="1200" d:DesignHeight="640">
+    <Grid Margin="0,12,0,0">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- Study and tolerance -->
+        <DockPanel Margin="0,0,0,12" LastChildFill="False">
+            <Button Content="Import study…" Command="{Binding ImportStudyCommand}" Style="{StaticResource ToolButton}" />
+            <Button Content="Load sample study" Command="{Binding LoadSampleStudyCommand}" Style="{StaticResource ToolButton}" />
+            <TextBlock Text="Tolerance from feature" VerticalAlignment="Center" Margin="16,0,8,0" />
+            <ComboBox ItemsSource="{Binding Features}" SelectedItem="{Binding SelectedFeature}" DisplayMemberPath="Name"
+                      Width="180" VerticalAlignment="Center" />
+            <TextBlock Text="or band (USL − LSL)" VerticalAlignment="Center" Margin="12,0,8,0" />
+            <TextBox Text="{Binding ToleranceText, UpdateSourceTrigger=PropertyChanged}" Width="80" VerticalAlignment="Center" Padding="3,2" />
+        </DockPanel>
+
+        <StackPanel Grid.Row="1" Margin="0,0,0,12">
+            <TextBlock Style="{StaticResource SectionTitle}" Text="{Binding StudyTitle}" />
+            <TextBlock Text="{Binding Message}" Foreground="{StaticResource MutedBrush}" TextWrapping="Wrap" Margin="0,2,0,0" />
+        </StackPanel>
+
+        <!-- Headline figures -->
+        <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,0,0,12"
+                    Visibility="{Binding HasResult, Converter={StaticResource BoolToVisibility}}">
+            <Border Style="{StaticResource Card}" Width="340">
+                <StackPanel>
+                    <DockPanel>
+                        <Border DockPanel.Dock="Right" Style="{StaticResource Badge}"
+                                Background="{Binding Result.Verdict, Converter={StaticResource StatusBrush}}">
+                            <TextBlock Style="{StaticResource BadgeText}" Text="{Binding Result.Verdict, Converter={StaticResource StatusText}}" />
+                        </Border>
+                        <TextBlock Style="{StaticResource CardLabel}" Text="%GRR of tolerance" VerticalAlignment="Center" />
+                    </DockPanel>
+                    <TextBlock Style="{StaticResource CardValue}" Text="{Binding Result.PercentOfTolerance, StringFormat={}{0:0.0}%}" />
+                    <controls:BandGauge Value="{Binding Result.PercentOfTolerance, FallbackValue=NaN}" Margin="0,4,0,0" />
+                </StackPanel>
+            </Border>
+            <Border Style="{StaticResource Card}">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource CardLabel}" Text="%GRR of study variation" />
+                    <TextBlock Style="{StaticResource CardValue}" Text="{Binding Result.PercentStudyVariation, StringFormat={}{0:0.0}%}" />
+                </StackPanel>
+            </Border>
+            <Border Style="{StaticResource Card}">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource CardLabel}" Text="Distinct categories (ndc ≥ 5)" />
+                    <TextBlock Style="{StaticResource CardValue}" Text="{Binding Result.DistinctCategories, TargetNullValue=—}" />
+                </StackPanel>
+            </Border>
+            <Border Style="{StaticResource Card}">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource CardLabel}" Text="Study" />
+                    <TextBlock Style="{StaticResource CardValue}">
+                        <Run Text="{Binding Result.PartCount, Mode=OneWay}" /><Run Text="×" Foreground="{StaticResource MutedBrush}" /><Run Text="{Binding Result.OperatorCount, Mode=OneWay}" /><Run Text="×" Foreground="{StaticResource MutedBrush}" /><Run Text="{Binding Result.TrialCount, Mode=OneWay}" />
+                    </TextBlock>
+                    <TextBlock Style="{StaticResource CardLabel}" Text="parts × operators × trials" />
+                </StackPanel>
+            </Border>
+        </StackPanel>
+
+        <!-- Breakdown -->
+        <Grid Grid.Row="3" Visibility="{Binding HasResult, Converter={StaticResource BoolToVisibility}}">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="3*" />
+                <ColumnDefinition Width="14" />
+                <ColumnDefinition Width="2*" />
+            </Grid.ColumnDefinitions>
+
+            <DockPanel>
+                <TextBlock DockPanel.Dock="Top" FontWeight="SemiBold" Margin="0,0,0,6"
+                           Text="Variance components (ANOVA method, study variation = 6σ)" />
+                <DataGrid ItemsSource="{Binding Result.Components}" IsReadOnly="True" VerticalAlignment="Top">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Source" Binding="{Binding DisplaySource}" Width="2.2*" />
+                        <DataGridTextColumn Header="σ" Binding="{Binding StandardDeviation, StringFormat={}{0:0.000000}}" Width="*" />
+                        <DataGridTextColumn Header="Study var (6σ)" Binding="{Binding StudyVariation, StringFormat={}{0:0.00000}}" Width="*" />
+                        <DataGridTextColumn Header="% contribution" Binding="{Binding PercentContribution, StringFormat={}{0:0.00}}" Width="*" />
+                        <DataGridTextColumn Header="% study var" Binding="{Binding PercentStudyVariation, StringFormat={}{0:0.00}}" Width="*" />
+                        <DataGridTextColumn Header="% tolerance" Binding="{Binding PercentOfTolerance, StringFormat={}{0:0.00}}" Width="*" />
+                    </DataGrid.Columns>
+                </DataGrid>
+            </DockPanel>
+
+            <StackPanel Grid.Column="2">
+                <TextBlock FontWeight="SemiBold" Margin="0,0,0,6" Text="Operators" />
+                <DataGrid ItemsSource="{Binding Result.Operators}" IsReadOnly="True">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Operator" Binding="{Binding Name}" Width="*" />
+                        <DataGridTextColumn Header="Mean" Binding="{Binding Mean, StringFormat={}{0:0.00000}}" Width="*" />
+                        <DataGridTextColumn Header="Avg range" Binding="{Binding AverageRange, StringFormat={}{0:0.00000}}" Width="*" />
+                        <DataGridTextColumn Header="Bias vs all" Binding="{Binding Bias, StringFormat={}{0:+0.00000;-0.00000;0}}" Width="*" />
+                    </DataGrid.Columns>
+                </DataGrid>
+
+                <TextBlock FontWeight="SemiBold" Margin="0,14,0,6" Text="ANOVA" />
+                <DataGrid ItemsSource="{Binding Result.Anova}" IsReadOnly="True">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Source" Binding="{Binding Source}" Width="1.4*" />
+                        <DataGridTextColumn Header="DF" Binding="{Binding DegreesOfFreedom}" Width="0.5*" />
+                        <DataGridTextColumn Header="SS" Binding="{Binding SumOfSquares, StringFormat={}{0:0.000E+0}}" Width="*" />
+                        <DataGridTextColumn Header="MS" Binding="{Binding MeanSquare, StringFormat={}{0:0.000E+0}}" Width="*" />
+                        <DataGridTextColumn Header="F" Binding="{Binding F, StringFormat={}{0:0.00}}" Width="0.8*" />
+                        <DataGridTextColumn Header="P" Binding="{Binding P, StringFormat={}{0:0.000}}" Width="0.7*" />
+                    </DataGrid.Columns>
+                </DataGrid>
+                <TextBlock Text="{Binding InteractionNote}" Foreground="{StaticResource MutedBrush}" TextWrapping="Wrap" Margin="0,6,0,0" />
+            </StackPanel>
+        </Grid>
+    </Grid>
+</UserControl>

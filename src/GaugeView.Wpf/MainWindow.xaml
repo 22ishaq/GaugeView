@@ -50,6 +50,9 @@
                 <TabItem Header="SPC charts">
                     <views:SpcView DataContext="{Binding Spc}" />
                 </TabItem>
+                <TabItem Header="Gauge R&amp;R">
+                    <views:GaugeRrView DataContext="{Binding GaugeRr}" />
+                </TabItem>
             </TabControl>
         </Grid>
     </DockPanel>

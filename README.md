@@ -33,6 +33,9 @@ CMM / gauge CSV ─────────┘                                  
   mean, and six in a row rising or falling. Hover over a point to see its part and the rule it broke.
 - **Calculates process capability.** Cp and Cpk from the within-process σ, and Pp and Ppk from the overall σ,
   rated against the usual Cpk ≥ 1.33 target. A large gap between Cpk and Ppk means the process is moving.
+- **Runs gauge R&R studies.** Import repeated readings by several operators and GaugeView works out repeatability
+  and reproducibility by ANOVA, reported as %GRR of the feature's tolerance against the usual 10% / 30% bands,
+  with the number of distinct categories and each operator's bias.
 - **Accepts manual entry.** Type a reading straight into the grid and the feature, the part verdict, the summary
   and the capability figures all update at once. Text that isn't a number is flagged instead of crashing the app.
 - **Imports and exports files.** Load an inspection plan (JSON) and readings exported from a CMM or gauge (CSV).
@@ -68,6 +71,25 @@ Pp and Ppk.
 Control limits describe what the process does; tolerance limits describe what the drawing allows. A process can
 be in control and still make scrap, or out of control while every part still passes.
 
+## Gauge R&R
+
+Before trusting a reading you need to know how much of it is the gauge. A crossed study has every operator
+measure every part several times; GaugeView analyses it by two-way ANOVA (parts × operators, with repeats), as in
+the AIAG MSA manual:
+
+- **Repeatability** (equipment variation) is the spread when one operator re-measures the same part.
+- **Reproducibility** (appraiser variation) is the spread between operators, including any operator × part
+  interaction. The interaction is tested first; if its p-value is above 0.05 it is pooled into repeatability.
+- **%GRR of tolerance** = 6σ(gauge) ÷ (USL − LSL). Under 10% is acceptable, 10–30% may be acceptable, over 30% is not.
+- **ndc** (number of distinct categories) = 1.41 × σ(part) ÷ σ(gauge), rounded down. Five or more is the usual minimum.
+
+p-values come from an F distribution implemented in Core (regularized incomplete beta), so the library has no
+maths dependency. The tests compare every figure with NumPy and `scipy.stats`.
+
+The sample study (`samples/bore-gauge-study.csv`) is ten bores measured three times each by three operators.
+The air gauge comes out **marginal at 15.7% of the 0.018 mm tolerance**, with ndc = 10. The operator table shows
+why: Calum reads about 0.6 µm higher than Ali and Beth, so retraining or a better locating fixture is the next step.
+
 ### Why `decimal`, not `double`
 
 In binary floating point, `0.7 + 0.1` is `0.7999999999999999`, so a part measured exactly on a 0.8 mm limit
@@ -78,7 +100,7 @@ to `double` for the statistics. A unit test covers this case.
 
 ```
 src/
-  GaugeView.Core           domain model, tolerance checks, capability, CSV/JSON I/O      net10.0
+  GaugeView.Core           tolerances, capability, SPC, gauge R&R, CSV/JSON I/O          net10.0
   GaugeView.Presentation   view models, commands, dialog abstraction (no WPF reference)  net10.0
   GaugeView.Wpf            XAML views, converters, Windows dialogs                       net10.0-windows
 tests/
@@ -133,6 +155,15 @@ BRK-0001,Spigot Ø8 g6,7.991
 ```
 
 If a part is measured twice, the later reading counts.
+
+**Gauge study** (`samples/bore-gauge-study.csv`). One reading per row; repeat readings of a part by the same
+operator are the trials, so a `trial` column is optional. Every operator must measure every part equally often:
+
+```csv
+part,operator,trial,value
+1,Ali,1,12.0043
+1,Beth,1,12.0045
+```
 
 ## Sample data
 
