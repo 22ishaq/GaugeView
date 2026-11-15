@@ -5,10 +5,13 @@ tolerance, flags anything out of spec, and uses SPC control charts to catch a pr
 before it starts making scrap. It is a C# / .NET 10 WPF desktop app, built with MVVM and unit-tested with xUnit.
 
 [![CI](https://github.com/22ishaq/GaugeView/actions/workflows/ci.yml/badge.svg)](https://github.com/22ishaq/GaugeView/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/22ishaq/GaugeView)](https://github.com/22ishaq/GaugeView/releases/latest)
 ![.NET 10](https://img.shields.io/badge/.NET-10-512BD4)
 ![C# WPF MVVM](https://img.shields.io/badge/C%23-WPF%20%2B%20MVVM-239120)
-![xUnit](https://img.shields.io/badge/tests-63%20xUnit-blue)
+![xUnit](https://img.shields.io/badge/tests-140%20xUnit-blue)
 ![License: MIT](https://img.shields.io/badge/license-MIT-green)
+
+![The SPC tab: the bore drifting towards its lower limit as the boring tool wears, flagged at part 21](docs/screenshots/spc-chart.png)
 
 ```
 inspection plan (JSON) ──┐
@@ -18,8 +21,9 @@ CMM / gauge CSV ─────────┘                                  
                                                                     └─▶ individuals control chart + Nelson rules
 ```
 
-> **Status: in progress.** The tolerance engine, file import and export, capability maths and the main WPF
-> screen are done and tested. The next sprint is on the [GitHub backlog](https://github.com/22ishaq/GaugeView/issues).
+> **Status: v1.0.** Inspection, SPC, capability, gauge R&R, history and the installer are done and tested.
+> [Download it](https://github.com/22ishaq/GaugeView/releases/latest); the next sprint is on the
+> [GitHub backlog](https://github.com/22ishaq/GaugeView/milestone/3).
 
 ## What it does
 
@@ -42,6 +46,30 @@ CMM / gauge CSV ─────────┘                                  
   and the capability figures all update at once. Text that isn't a number is flagged instead of crashing the app.
 - **Imports and exports files.** Load an inspection plan (JSON) and readings exported from a CMM or gauge (CSV).
   Export a per-feature report (CSV) that opens cleanly in Excel.
+
+## Screenshots
+
+| Inspection | Gauge R&R | History |
+|---|---|---|
+| [![Inspection tab](docs/screenshots/inspection.png)](docs/screenshots/inspection.png) | [![Gauge R&R tab](docs/screenshots/gauge-rr.png)](docs/screenshots/gauge-rr.png) | [![History tab](docs/screenshots/history.png)](docs/screenshots/history.png) |
+| BRK-0005 has an amber and a red feature; summary cards and capability across all 30 parts. | The sample bore gauge: marginal at 15.7% of tolerance, with Calum reading high. | Three saved batches. The bore's mean falls batch by batch, and Ppk drops to 0.40 while Cpk still looks fine. |
+
+The images are rendered by the app itself (`GaugeView.exe --screenshots <folder>`) on a Windows runner in CI, so
+they always match the code.
+
+## Download
+
+Get the latest build from [Releases](https://github.com/22ishaq/GaugeView/releases/latest). Both downloads are
+self-contained, so the PC doesn't need .NET installed.
+
+- **Portable zip:** unzip anywhere and run `GaugeView.exe`.
+- **MSIX installer:** installs to the Start menu and uninstalls cleanly from Settings. The package is signed with a
+  self-signed certificate created by the release workflow, so trust it once first: open `GaugeView.cer` →
+  *Install Certificate* → *Local Machine* → **Trusted People**, then double-click the `.msix`.
+
+Releases are built by [`release.yml`](.github/workflows/release.yml) when a `v*` tag is pushed: it runs the tests,
+publishes a self-contained win-x64 build, packs it with `makeappx`, signs it with `signtool`, and attaches the MSIX,
+the certificate and the portable zip to the release.
 
 ## How a reading is judged
 
@@ -95,6 +123,7 @@ why: Calum reads about 0.6 µm higher than Ali and Beth, so retraining or a bett
 ## Inspection history
 
 Inspections are saved to `%LOCALAPPDATA%\GaugeView\history.db`, one SQLite file the user can back up or copy.
+(When installed from the MSIX, Windows redirects this into the package's own app-data folder.)
 
 - **Records are only ever added.** An inspection is evidence of what was measured, so GaugeView never edits or
   deletes one. Reopening an inspection restores its plan, readings and warning threshold exactly.
@@ -135,20 +164,6 @@ tests/
 - **Warnings are errors** across the solution, with nullable reference types on. Package versions are managed
   centrally in `Directory.Packages.props`.
 
-## Download
-
-Get the latest build from [Releases](https://github.com/22ishaq/GaugeView/releases/latest). Both downloads are
-self-contained, so the PC doesn't need .NET installed.
-
-- **Portable zip:** unzip anywhere and run `GaugeView.exe`.
-- **MSIX installer:** installs to the Start menu and uninstalls cleanly from Settings. The package is signed with a
-  self-signed certificate created by the release workflow, so trust it once first: open `GaugeView.cer` →
-  *Install Certificate* → *Local Machine* → **Trusted People**, then double-click the `.msix`.
-
-Releases are built by [`release.yml`](.github/workflows/release.yml) when a `v*` tag is pushed: it runs the tests,
-publishes a self-contained win-x64 build, packs it with `makeappx`, signs it with `signtool`, and attaches the MSIX,
-the certificate and the portable zip to the release.
-
 ## Building from source
 
 You need the [.NET 10 SDK](https://dotnet.microsoft.com/download). The app runs on Windows; the libraries and
@@ -158,10 +173,11 @@ tests build and run on any OS.
 git clone https://github.com/22ishaq/GaugeView.git
 cd GaugeView
 dotnet run --project src/GaugeView.Wpf   # Windows only: opens with the sample data loaded
-dotnet test                              # any OS: runs the 63 tests
+dotnet test                              # any OS: runs the 140 tests
 ```
 
-CI builds and tests every push on Ubuntu and Windows, then publishes the Windows app as a downloadable artifact.
+CI builds and tests every push on Ubuntu and Windows (warnings are errors, including NuGet vulnerability audits),
+then publishes the Windows app as a workflow artifact. A second workflow renders the screenshots.
 
 ## File formats
 
@@ -211,11 +227,17 @@ passes until BRK-0030, but the SPC chart flags the drift at **BRK-0021** (six re
 parts earlier. The bore's Cpk is 1.20 while its Ppk is 0.58, which is the same story in numbers. Tests check these
 figures, so this README can't drift from the code.
 
-## Roadmap
+## How the work is planned
 
-Work is planned in short sprints on the [GitHub backlog](https://github.com/22ishaq/GaugeView/issues), with each
-sprint as a [milestone](https://github.com/22ishaq/GaugeView/milestones). Next up: screenshots, an SPC run chart
-per feature, a gauge R&R study, inspection history in SQLite, and an installer.
+Work is planned in short sprints on the [GitHub backlog](https://github.com/22ishaq/GaugeView/issues), one
+[milestone](https://github.com/22ishaq/GaugeView/milestones) per sprint. Each issue is built on its own branch and
+merged through a pull request once CI is green on Ubuntu and Windows.
+
+| Sprint | Delivered |
+|---|---|
+| 1: MVP | Tolerance model, pass/warn/fail, CSV/JSON import, capability, main window, manual entry, CSV export, CI |
+| 2: Insight and polish | SPC charts and Nelson rules, Cp/Cpk vs Pp/Ppk, gauge R&R, SQLite history, MSIX installer, screenshots |
+| 3: Shop-floor integration (next) | Moving range chart, configurable rules, QIF import from a CMM, PDF certificate, keyboard-only entry |
 
 ## License
 
