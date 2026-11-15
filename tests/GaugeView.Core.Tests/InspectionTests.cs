@@ -135,12 +135,23 @@ public class CapabilityTests
     {
         var result = CapabilityCalculator.Calculate(Thickness, [9.98m, 10.00m, 10.02m, 10.00m]);
 
-        // σ = √((0.02² + 0 + 0.02² + 0) / 3) = 0.0163299; Cp = 0.20 / 6σ
+        // Within σ = MR̄ / d2 = 0.02 / 1.128 = 0.0177305; Cp = 0.20 / 6σ
         Assert.Equal(10.00, result.Mean, 6);
-        Assert.Equal(0.0163299, result.StandardDeviation, 6);
-        Assert.Equal(2.0412, result.Cp!.Value, 4);
-        Assert.Equal(2.0412, result.Cpk!.Value, 4);
+        Assert.Equal(0.0177305, result.WithinStandardDeviation, 6);
+        Assert.Equal(1.8800, result.Cp!.Value, 4);
+        Assert.Equal(1.8800, result.Cpk!.Value, 4);
         Assert.Equal(CapabilityRating.Capable, result.Rating);
+    }
+
+    [Fact]
+    public void Pp_and_ppk_use_the_overall_standard_deviation()
+    {
+        var result = CapabilityCalculator.Calculate(Thickness, [9.98m, 10.00m, 10.02m, 10.00m]);
+
+        // Overall σ = √((0.02² + 0 + 0.02² + 0) / 3) = 0.0163299; Pp = 0.20 / 6σ
+        Assert.Equal(0.0163299, result.StandardDeviation, 6);
+        Assert.Equal(2.0412, result.Pp!.Value, 4);
+        Assert.Equal(2.0412, result.Ppk!.Value, 4);
     }
 
     [Fact]
@@ -148,9 +159,21 @@ public class CapabilityTests
     {
         var result = CapabilityCalculator.Calculate(Thickness, [10.02m, 10.04m, 10.06m, 10.04m]);
 
-        Assert.Equal(2.0412, result.Cp!.Value, 4);
-        Assert.Equal(1.2247, result.Cpk!.Value, 4); // (10.10 − 10.04) / 3σ
+        Assert.Equal(1.8800, result.Cp!.Value, 4);
+        Assert.Equal(1.1280, result.Cpk!.Value, 4); // (10.10 − 10.04) / 3σ
+        Assert.Equal(1.2247, result.Ppk!.Value, 4);
         Assert.Equal(CapabilityRating.Marginal, result.Rating);
+    }
+
+    [Fact]
+    public void Drifting_process_has_ppk_well_below_cpk()
+    {
+        // Every part is 0.01 bigger than the last: tiny part-to-part noise, large drift overall.
+        var result = CapabilityCalculator.Calculate(
+            Thickness, [10.00m, 10.01m, 10.02m, 10.03m, 10.04m, 10.05m, 10.06m, 10.07m]);
+
+        Assert.Equal(2.4440, result.Cpk!.Value, 4);
+        Assert.Equal(0.8845, result.Ppk!.Value, 4);
     }
 
     [Fact]
@@ -174,7 +197,9 @@ public class CapabilityTests
         var result = CapabilityCalculator.Calculate(Thickness, [10.01m, 10.01m, 10.01m]);
 
         Assert.Equal(0, result.StandardDeviation);
+        Assert.Equal(0, result.WithinStandardDeviation);
         Assert.Null(result.Cp);
+        Assert.Null(result.Pp);
         Assert.Equal(CapabilityRating.InsufficientData, result.Rating);
     }
 }

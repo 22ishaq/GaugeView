@@ -23,6 +23,7 @@ public sealed class MainViewModel : ObservableObject
     private PartViewModel? selectedPart;
     private double warningThresholdPercent = (double)(ToleranceChecker.DefaultWarningThreshold * 100);
     private string statusMessage = "Open an inspection plan, or load the sample, to start.";
+    private int selectedTab;
     private bool rechecking;
     private int manualPartCount;
 
@@ -43,6 +44,9 @@ public sealed class MainViewModel : ObservableObject
 
     public ObservableCollection<CapabilityResult> Capability { get; } = [];
 
+    /// <summary>Control charts for the SPC tab, kept in step with the readings.</summary>
+    public SpcViewModel Spc { get; } = new();
+
     public RelayCommand OpenPlanCommand { get; }
 
     public RelayCommand ImportMeasurementsCommand { get; }
@@ -56,6 +60,13 @@ public sealed class MainViewModel : ObservableObject
     public string PlanTitle => plan is null
         ? "No inspection plan loaded"
         : $"{plan.PartNumber} · {plan.Description} ({plan.Features.Count} features, {plan.Unit})";
+
+    /// <summary>The open tab: 0 inspection, 1 SPC charts, 2 gauge R&amp;R, 3 history.</summary>
+    public int SelectedTab
+    {
+        get => selectedTab;
+        set => SetProperty(ref selectedTab, value);
+    }
 
     public PartViewModel? SelectedPart
     {
@@ -224,12 +235,15 @@ public sealed class MainViewModel : ObservableObject
         OnPropertyChanged(nameof(MissingCount));
         OnPropertyChanged(nameof(YieldPercent));
 
+        var inspections = Parts.Select(p => p.ToInspection()).ToList();
         Capability.Clear();
-        if (plan is not null && Parts.Count > 0)
+        if (plan is not null && inspections.Count > 0)
         {
-            foreach (var result in CapabilityCalculator.Calculate(plan, Parts.Select(p => p.ToInspection())))
+            foreach (var result in CapabilityCalculator.Calculate(plan, inspections))
                 Capability.Add(result);
         }
+
+        Spc.Update(plan, inspections);
 
         ImportMeasurementsCommand.RaiseCanExecuteChanged();
         AddPartCommand.RaiseCanExecuteChanged();

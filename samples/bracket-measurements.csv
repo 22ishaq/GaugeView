@@ -1,4 +1,5 @@
 # BRK-1042 sensor mounting bracket: readings from CMM 2, shift A
+# From BRK-0016 the boring tool is wearing, so the bore drifts towards its lower limit.
 serial,feature,value
 BRK-0001,Bore Ø12 H7,12.008
 BRK-0001,Spigot Ø8 g6,7.991
@@ -27,7 +28,7 @@ BRK-0004,Thickness,10.00
 BRK-0005,Bore Ø12 H7,12.009
 BRK-0005,Spigot Ø8 g6,7.989
 BRK-0005,Overall length,85.12
-BRK-0005,Hole spacing,40.01
+BRK-0005,Hole spacing,40.04
 BRK-0005,Slot width,6.022
 BRK-0005,Thickness,10.01
 BRK-0006,Bore Ø12 H7,12.011
@@ -71,3 +72,111 @@ BRK-0012,Spigot Ø8 g6,7.990
 BRK-0012,Overall length,84.99
 BRK-0012,Hole spacing,40.02
 BRK-0012,Slot width,6.020
+BRK-0013,Bore Ø12 H7,12.010
+BRK-0013,Spigot Ø8 g6,7.990
+BRK-0013,Overall length,84.99
+BRK-0013,Hole spacing,40.00
+BRK-0013,Slot width,6.016
+BRK-0013,Thickness,10.00
+BRK-0014,Bore Ø12 H7,12.011
+BRK-0014,Spigot Ø8 g6,7.991
+BRK-0014,Overall length,85.04
+BRK-0014,Hole spacing,40.01
+BRK-0014,Slot width,6.020
+BRK-0014,Thickness,9.99
+BRK-0015,Bore Ø12 H7,12.009
+BRK-0015,Spigot Ø8 g6,7.992
+BRK-0015,Overall length,85.04
+BRK-0015,Hole spacing,39.99
+BRK-0015,Slot width,6.021
+BRK-0015,Thickness,10.03
+BRK-0016,Bore Ø12 H7,12.010
+BRK-0016,Spigot Ø8 g6,7.990
+BRK-0016,Overall length,85.04
+BRK-0016,Hole spacing,40.00
+BRK-0016,Slot width,6.016
+BRK-0016,Thickness,9.98
+BRK-0017,Bore Ø12 H7,12.009
+BRK-0017,Spigot Ø8 g6,7.991
+BRK-0017,Overall length,85.01
+BRK-0017,Hole spacing,40.01
+BRK-0017,Slot width,6.023
+BRK-0017,Thickness,10.02
+BRK-0018,Bore Ø12 H7,12.008
+BRK-0018,Spigot Ø8 g6,7.990
+BRK-0018,Overall length,85.00
+BRK-0018,Hole spacing,39.99
+BRK-0018,Slot width,6.023
+BRK-0018,Thickness,9.98
+BRK-0019,Bore Ø12 H7,12.007
+BRK-0019,Spigot Ø8 g6,7.990
+BRK-0019,Overall length,84.97
+BRK-0019,Hole spacing,40.00
+BRK-0019,Slot width,6.024
+BRK-0019,Thickness,10.01
+BRK-0020,Bore Ø12 H7,12.006
+BRK-0020,Spigot Ø8 g6,7.989
+BRK-0020,Overall length,84.99
+BRK-0020,Hole spacing,40.00
+BRK-0020,Slot width,6.022
+BRK-0020,Thickness,9.98
+BRK-0021,Bore Ø12 H7,12.005
+BRK-0021,Spigot Ø8 g6,7.989
+BRK-0021,Overall length,85.02
+BRK-0021,Hole spacing,40.02
+BRK-0021,Slot width,6.019
+BRK-0021,Thickness,9.98
+BRK-0022,Bore Ø12 H7,12.005
+BRK-0022,Spigot Ø8 g6,7.990
+BRK-0022,Overall length,84.97
+BRK-0022,Hole spacing,40.01
+BRK-0022,Slot width,6.019
+BRK-0022,Thickness,9.98
+BRK-0023,Bore Ø12 H7,12.004
+BRK-0023,Spigot Ø8 g6,7.990
+BRK-0023,Overall length,85.02
+BRK-0023,Hole spacing,40.02
+BRK-0023,Slot width,6.020
+BRK-0023,Thickness,9.99
+BRK-0024,Bore Ø12 H7,12.003
+BRK-0024,Spigot Ø8 g6,7.990
+BRK-0024,Overall length,85.00
+BRK-0024,Hole spacing,40.01
+BRK-0024,Slot width,6.019
+BRK-0024,Thickness,10.03
+BRK-0025,Bore Ø12 H7,12.003
+BRK-0025,Spigot Ø8 g6,7.990
+BRK-0025,Overall length,84.99
+BRK-0025,Hole spacing,39.98
+BRK-0025,Slot width,6.023
+BRK-0025,Thickness,9.99
+BRK-0026,Bore Ø12 H7,12.002
+BRK-0026,Spigot Ø8 g6,7.990
+BRK-0026,Overall length,85.01
+BRK-0026,Hole spacing,39.98
+BRK-0026,Slot width,6.024
+BRK-0026,Thickness,10.01
+BRK-0027,Bore Ø12 H7,12.002
+BRK-0027,Spigot Ø8 g6,7.991
+BRK-0027,Overall length,85.01
+BRK-0027,Hole spacing,40.00
+BRK-0027,Slot width,6.022
+BRK-0027,Thickness,10.02
+BRK-0028,Bore Ø12 H7,12.001
+BRK-0028,Spigot Ø8 g6,7.992
+BRK-0028,Overall length,85.02
+BRK-0028,Hole spacing,40.01
+BRK-0028,Slot width,6.019
+BRK-0028,Thickness,10.03
+BRK-0029,Bore Ø12 H7,12.000
+BRK-0029,Spigot Ø8 g6,7.990
+BRK-0029,Overall length,84.99
+BRK-0029,Hole spacing,40.00
+BRK-0029,Slot width,6.021
+BRK-0029,Thickness,10.01
+BRK-0030,Bore Ø12 H7,11.999
+BRK-0030,Spigot Ø8 g6,7.990
+BRK-0030,Overall length,85.04
+BRK-0030,Hole spacing,39.99
+BRK-0030,Slot width,6.016
+BRK-0030,Thickness,9.99
