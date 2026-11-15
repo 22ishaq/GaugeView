@@ -38,6 +38,7 @@ public sealed class MainViewModel : ObservableObject
         AddPartCommand = new RelayCommand(AddPart, () => plan is not null);
         ExportReportCommand = new RelayCommand(ExportReport, () => Parts.Count > 0);
         LoadSampleCommand = new RelayCommand(LoadSample, () => SampleAvailable);
+        GaugeRr = new GaugeRrViewModel(dialogs, sampleDirectory);
     }
 
     public ObservableCollection<PartViewModel> Parts { get; } = [];
@@ -46,6 +47,9 @@ public sealed class MainViewModel : ObservableObject
 
     /// <summary>Control charts for the SPC tab, kept in step with the readings.</summary>
     public SpcViewModel Spc { get; } = new();
+
+    /// <summary>The gauge R&amp;R study for the Gauge R&amp;R tab.</summary>
+    public GaugeRrViewModel GaugeRr { get; }
 
     public RelayCommand OpenPlanCommand { get; }
 
@@ -122,6 +126,7 @@ public sealed class MainViewModel : ObservableObject
         Parts.Clear();
         SelectedPart = null;
         OnPropertyChanged(nameof(PlanTitle));
+        GaugeRr.SetPlan(plan);
         RefreshSummary();
         StatusMessage = $"Loaded plan {plan.PartNumber} with {plan.Features.Count} features.";
     }
@@ -195,6 +200,8 @@ public sealed class MainViewModel : ObservableObject
         {
             LoadPlan(InspectionPlanReader.ReadFile(Path.Combine(sampleDirectory, SamplePlanFile)));
             LoadMeasurements(MeasurementCsvReader.ReadFile(Path.Combine(sampleDirectory, SampleMeasurementsFile)));
+            if (GaugeRr.LoadSampleStudyCommand.CanExecute(null))
+                GaugeRr.LoadSampleStudy();
         });
     }
 

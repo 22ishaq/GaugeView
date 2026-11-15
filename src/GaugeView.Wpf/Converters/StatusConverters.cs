@@ -15,9 +15,9 @@ public sealed class StatusToBrushConverter : IValueConverter
 
     public static Brush BrushFor(object? value) => value switch
     {
-        InspectionStatus.Pass or CapabilityRating.Capable or ChartState.InControl => PassBrush,
-        InspectionStatus.Warning or CapabilityRating.Marginal or ChartState.OutOfControl => WarningBrush,
-        InspectionStatus.Fail or CapabilityRating.NotCapable => FailBrush,
+        InspectionStatus.Pass or CapabilityRating.Capable or ChartState.InControl or GrrVerdict.Acceptable => PassBrush,
+        InspectionStatus.Warning or CapabilityRating.Marginal or ChartState.OutOfControl or GrrVerdict.Marginal => WarningBrush,
+        InspectionStatus.Fail or CapabilityRating.NotCapable or GrrVerdict.Unacceptable => FailBrush,
         _ => NoDataBrush,
     };
 
@@ -51,6 +51,9 @@ public sealed class StatusToTextConverter : IValueConverter
         ChartState.OutOfControl => "SIGNAL",
         ChartState.NotEnoughData => "NO DATA",
         SpcRule rule => $"RULE {(int)rule}",
+        GrrVerdict.Acceptable => "ACCEPTABLE",
+        GrrVerdict.Marginal => "MARGINAL",
+        GrrVerdict.Unacceptable => "UNACCEPTABLE",
         _ => string.Empty,
     };
 
