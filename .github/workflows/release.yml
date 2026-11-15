@@ -1,8 +1,9 @@
 name: Release
 
 # Builds the Windows installer (MSIX) and a portable zip. Both are self-contained, so neither needs the .NET
-# SDK or runtime on the target PC. Pushing a tag such as v1.2.0 publishes a GitHub release; running the
-# workflow by hand builds the same files as a workflow artifact for testing.
+# SDK or runtime on the target PC. A new tag such as v1.2.0, pushed with git or created by publishing a
+# release in GitHub's web UI, gets the files attached to its release. Running the workflow by hand builds the
+# same files as a workflow artifact for testing.
 
 on:
   push:
@@ -112,8 +113,20 @@ jobs:
 
           Built from ${{ github.sha }} by the release workflow.
           "@
-          gh release create '${{ github.ref_name }}' `
-            "GaugeView-${{ steps.version.outputs.semver }}-x64.msix" `
-            "GaugeView-${{ steps.version.outputs.semver }}-win-x64-portable.zip" `
-            GaugeView.cer `
-            --title "GaugeView ${{ steps.version.outputs.semver }}" --notes $notes
+          $tag = '${{ github.ref_name }}'
+          $files = @(
+            "GaugeView-${{ steps.version.outputs.semver }}-x64.msix",
+            "GaugeView-${{ steps.version.outputs.semver }}-win-x64-portable.zip",
+            'GaugeView.cer')
+
+          # The release may already exist if it was drafted in GitHub's web UI, which creates the tag too.
+          # Then attach the files, and only fill in the notes if nobody wrote any.
+          gh release view $tag --json body --jq .body *> release-body.txt
+          if ($LASTEXITCODE -eq 0) {
+            gh release upload $tag @files --clobber
+            $body = Get-Content release-body.txt -Raw
+            if ([string]::IsNullOrWhiteSpace($body)) { gh release edit $tag --notes $notes }
+          }
+          else {
+            gh release create $tag @files --title "GaugeView ${{ steps.version.outputs.semver }}" --notes $notes
+          }

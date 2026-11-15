@@ -67,9 +67,10 @@ self-contained, so the PC doesn't need .NET installed.
   self-signed certificate created by the release workflow, so trust it once first: open `GaugeView.cer` →
   *Install Certificate* → *Local Machine* → **Trusted People**, then double-click the `.msix`.
 
-Releases are built by [`release.yml`](.github/workflows/release.yml) when a `v*` tag is pushed: it runs the tests,
-publishes a self-contained win-x64 build, packs it with `makeappx`, signs it with `signtool`, and attaches the MSIX,
-the certificate and the portable zip to the release.
+Releases are built by [`release.yml`](.github/workflows/release.yml) whenever a new `v*` tag appears, whether pushed
+with git or created by publishing a release in GitHub's web UI. It runs the tests, publishes a self-contained
+win-x64 build, packs it with `makeappx`, signs it with `signtool`, and attaches the MSIX, the certificate and the
+portable zip to the release.
 
 ## How a reading is judged
 
