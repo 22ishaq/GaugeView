@@ -53,6 +53,9 @@
                 <TabItem Header="Gauge R&amp;R">
                     <views:GaugeRrView DataContext="{Binding GaugeRr}" />
                 </TabItem>
+                <TabItem Header="History">
+                    <views:HistoryView DataContext="{Binding History}" />
+                </TabItem>
             </TabControl>
         </Grid>
     </DockPanel>
