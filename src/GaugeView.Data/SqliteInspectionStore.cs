@@ -437,6 +437,7 @@ public sealed class SqliteInspectionStore : IInspectionHistory
                 measured ? Values.Min() : null,
                 measured ? Values.Max() : null,
                 capability.Cpk,
+                capability.Ppk,
                 Fails);
         }
     }

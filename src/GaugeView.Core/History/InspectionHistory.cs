@@ -24,7 +24,10 @@ public sealed record InspectionRecord(
 public sealed record SavedInspection(
     InspectionRecord Record, InspectionPlan Plan, IReadOnlyList<PartInspection> Parts, decimal WarningThreshold);
 
-/// <summary>One saved batch's figures for one feature, for reviewing trends across batches.</summary>
+/// <summary>
+/// One saved batch's figures for one feature, for reviewing trends across batches. Cpk uses the within-batch σ
+/// and Ppk the overall σ; a batch that drifts can have a good Cpk and a poor Ppk.
+/// </summary>
 public sealed record FeatureTrendPoint(
     long InspectionId,
     string Batch,
@@ -35,6 +38,7 @@ public sealed record FeatureTrendPoint(
     decimal? Minimum,
     decimal? Maximum,
     double? Cpk,
+    double? Ppk,
     int FailCount)
 {
     public DateTimeOffset LocalTime => InspectedAt.ToLocalTime();

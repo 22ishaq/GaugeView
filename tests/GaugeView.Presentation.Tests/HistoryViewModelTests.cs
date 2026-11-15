@@ -173,7 +173,7 @@ public class HistoryViewModelTests
         {
             LastTrendFeature = featureName;
             return Saved.Select(s => new FeatureTrendPoint(s.Record.Id, s.Record.Batch, s.Record.Operator, s.Record.InspectedAt,
-                s.Parts.Count, null, null, null, null, 0)).ToList();
+                s.Parts.Count, null, null, null, null, null, 0)).ToList();
         }
     }
 

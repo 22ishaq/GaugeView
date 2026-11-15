@@ -37,7 +37,7 @@ CMM / gauge CSV ─────────┘                                  
   and reproducibility by ANOVA, reported as %GRR of the feature's tolerance against the usual 10% / 30% bands,
   with the number of distinct categories and each operator's bias.
 - **Keeps an inspection history.** Save each inspection with the operator, batch and time to a local SQLite file,
-  reopen any of them exactly as it was, and follow a feature's mean, range, Cpk and fail count from batch to batch.
+  reopen any of them exactly as it was, and follow a feature's mean, range, Cpk, Ppk and fails from batch to batch.
 - **Accepts manual entry.** Type a reading straight into the grid and the feature, the part verdict, the summary
   and the capability figures all update at once. Text that isn't a number is flagged instead of crashing the app.
 - **Imports and exports files.** Load an inspection plan (JSON) and readings exported from a CMM or gauge (CSV).
@@ -103,7 +103,8 @@ Inspections are saved to `%LOCALAPPDATA%\GaugeView\history.db`, one SQLite file 
 - **Safe SQL.** Every value is a bound parameter, each save is a single transaction, and foreign keys are enforced.
 - **Versioned schema.** The schema version lives in `PRAGMA user_version`. Older files are upgraded in place by
   numbered migrations; a file from a newer GaugeView is refused rather than modified.
-- **Trends across batches.** For any feature, one row per saved batch: n, mean, min, max, Cpk and fails, oldest first.
+- **Trends across batches.** For any feature, one row per saved batch: n, mean, min, max, Cpk, Ppk and fails,
+  oldest first.
 
 ### Why `decimal`, not `double`
 

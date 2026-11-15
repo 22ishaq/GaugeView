@@ -70,6 +70,7 @@
                         <DataGridTextColumn Header="Min" Binding="{Binding Minimum}" Width="*" />
                         <DataGridTextColumn Header="Max" Binding="{Binding Maximum}" Width="*" />
                         <DataGridTextColumn Header="Cpk" Binding="{Binding Cpk, StringFormat={}{0:0.00}}" Width="0.7*" />
+                        <DataGridTextColumn Header="Ppk" Binding="{Binding Ppk, StringFormat={}{0:0.00}}" Width="0.7*" />
                         <DataGridTextColumn Header="Fails" Binding="{Binding FailCount}" Width="0.6*" />
                     </DataGrid.Columns>
                 </DataGrid>

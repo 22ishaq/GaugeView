@@ -102,6 +102,7 @@ public sealed class SqliteInspectionStoreTests : IDisposable
         Assert.Equal((2, 0), (trend[0].SampleCount, trend[0].FailCount));
         Assert.Equal((3, 1), (trend[1].SampleCount, trend[1].FailCount));
         Assert.NotNull(trend[1].Cpk);
+        Assert.True(trend[1].Ppk < trend[1].Cpk); // steadily falling readings: drift shows in Ppk, not Cpk
     }
 
     [Fact]
