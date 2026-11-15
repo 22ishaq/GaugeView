@@ -1,0 +1,119 @@
+name: Release
+
+# Builds the Windows installer (MSIX) and a portable zip. Both are self-contained, so neither needs the .NET
+# SDK or runtime on the target PC. Pushing a tag such as v1.2.0 publishes a GitHub release; running the
+# workflow by hand builds the same files as a workflow artifact for testing.
+
+on:
+  push:
+    tags: ['v*.*.*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  PUBLISHER: CN=Ishaq Ansary
+
+jobs:
+  package:
+    name: Package for Windows
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Work out the version
+        id: version
+        shell: pwsh
+        run: |
+          $tag = '${{ github.ref_name }}'
+          $version = if ($tag -match '^v(\d+\.\d+\.\d+)$') { $Matches[1] } else { '0.0.0' }
+          "semver=$version" >> $env:GITHUB_OUTPUT
+          "msix=$version.0" >> $env:GITHUB_OUTPUT
+
+      - name: Test
+        run: |
+          dotnet build GaugeView.slnx -c Release
+          dotnet test --solution GaugeView.slnx -c Release --no-build
+
+      - name: Publish self-contained
+        run: >
+          dotnet publish src/GaugeView.Wpf/GaugeView.Wpf.csproj -c Release -r win-x64 --self-contained true
+          -p:Version=${{ steps.version.outputs.semver }} -o publish
+
+      - name: Find the Windows SDK tools
+        shell: pwsh
+        run: |
+          $bin = Get-ChildItem 'C:\Program Files (x86)\Windows Kits\10\bin\10.*\x64\makeappx.exe' |
+            Sort-Object { [version]$_.Directory.Parent.Name } -Descending | Select-Object -First 1
+          if (-not $bin) { throw 'makeappx.exe not found' }
+          $bin.DirectoryName >> $env:GITHUB_PATH
+          "Using $($bin.DirectoryName)"
+
+      - name: Lay out and pack the MSIX
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force layout | Out-Null
+          Copy-Item publish/* layout -Recurse
+          Copy-Item packaging/Assets layout/Assets -Recurse
+          $manifest = Get-Content packaging/AppxManifest.xml -Raw
+          $manifest = $manifest.Replace('$VERSION$', '${{ steps.version.outputs.msix }}').Replace('$PUBLISHER$', $env:PUBLISHER)
+          Set-Content layout/AppxManifest.xml -Value $manifest -Encoding utf8
+          makeappx pack /d layout /p "GaugeView-${{ steps.version.outputs.semver }}-x64.msix" /o
+          if ($LASTEXITCODE -ne 0) { throw "makeappx failed with $LASTEXITCODE" }
+
+      - name: Sign the MSIX
+        shell: pwsh
+        run: |
+          # A self-signed code-signing certificate, created per release. Its subject must equal the manifest's
+          # publisher. Users trust GaugeView.cer once before installing (see the README).
+          $cert = New-SelfSignedCertificate -Type Custom -Subject $env:PUBLISHER -KeyUsage DigitalSignature `
+            -FriendlyName 'GaugeView release signing' -CertStoreLocation 'Cert:\CurrentUser\My' `
+            -NotAfter (Get-Date).AddYears(3) `
+            -TextExtension @('2.5.29.37={text}1.3.6.1.5.5.7.3.3', '2.5.29.19={text}')
+          $password = ConvertTo-SecureString -String ([guid]::NewGuid().ToString()) -Force -AsPlainText
+          Export-PfxCertificate -Cert $cert -FilePath signing.pfx -Password $password | Out-Null
+          Export-Certificate -Cert $cert -FilePath GaugeView.cer | Out-Null
+          $plain = [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($password))
+          signtool sign /fd SHA256 /f signing.pfx /p $plain "GaugeView-${{ steps.version.outputs.semver }}-x64.msix"
+          if ($LASTEXITCODE -ne 0) { throw "signtool failed with $LASTEXITCODE" }
+          Remove-Item signing.pfx
+
+      - name: Zip the portable build
+        shell: pwsh
+        run: Compress-Archive -Path publish/* -DestinationPath "GaugeView-${{ steps.version.outputs.semver }}-win-x64-portable.zip"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: GaugeView-${{ steps.version.outputs.semver }}
+          path: |
+            GaugeView-*.msix
+            GaugeView-*.zip
+            GaugeView.cer
+
+      - name: Publish the GitHub release
+        if: startsWith(github.ref, 'refs/tags/v')
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          $notes = @"
+          ## Install
+
+          **Portable (simplest):** download ``GaugeView-${{ steps.version.outputs.semver }}-win-x64-portable.zip``, unzip it anywhere and run ``GaugeView.exe``. Nothing else to install: the .NET runtime is included.
+
+          **Installer (MSIX):** the package is signed with a self-signed certificate made by the release workflow, so Windows needs to trust it once:
+          1. Download ``GaugeView.cer`` and the ``.msix``.
+          2. Open ``GaugeView.cer`` → *Install Certificate* → *Local Machine* → *Place all certificates in the following store* → **Trusted People**.
+          3. Double-click the ``.msix`` and choose *Install*. GaugeView then appears in the Start menu and can be uninstalled from Settings.
+
+          Built from ${{ github.sha }} by the release workflow.
+          "@
+          gh release create '${{ github.ref_name }}' `
+            "GaugeView-${{ steps.version.outputs.semver }}-x64.msix" `
+            "GaugeView-${{ steps.version.outputs.semver }}-win-x64-portable.zip" `
+            GaugeView.cer `
+            --title "GaugeView ${{ steps.version.outputs.semver }}" --notes $notes

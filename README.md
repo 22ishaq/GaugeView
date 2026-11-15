@@ -135,7 +135,21 @@ tests/
 - **Warnings are errors** across the solution, with nullable reference types on. Package versions are managed
   centrally in `Directory.Packages.props`.
 
-## Getting started
+## Download
+
+Get the latest build from [Releases](https://github.com/22ishaq/GaugeView/releases/latest). Both downloads are
+self-contained, so the PC doesn't need .NET installed.
+
+- **Portable zip:** unzip anywhere and run `GaugeView.exe`.
+- **MSIX installer:** installs to the Start menu and uninstalls cleanly from Settings. The package is signed with a
+  self-signed certificate created by the release workflow, so trust it once first: open `GaugeView.cer` →
+  *Install Certificate* → *Local Machine* → **Trusted People**, then double-click the `.msix`.
+
+Releases are built by [`release.yml`](.github/workflows/release.yml) when a `v*` tag is pushed: it runs the tests,
+publishes a self-contained win-x64 build, packs it with `makeappx`, signs it with `signtool`, and attaches the MSIX,
+the certificate and the portable zip to the release.
+
+## Building from source
 
 You need the [.NET 10 SDK](https://dotnet.microsoft.com/download). The app runs on Windows; the libraries and
 tests build and run on any OS.
