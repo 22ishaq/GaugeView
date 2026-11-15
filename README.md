@@ -36,6 +36,8 @@ CMM / gauge CSV ─────────┘                                  
 - **Runs gauge R&R studies.** Import repeated readings by several operators and GaugeView works out repeatability
   and reproducibility by ANOVA, reported as %GRR of the feature's tolerance against the usual 10% / 30% bands,
   with the number of distinct categories and each operator's bias.
+- **Keeps an inspection history.** Save each inspection with the operator, batch and time to a local SQLite file,
+  reopen any of them exactly as it was, and follow a feature's mean, range, Cpk, Ppk and fails from batch to batch.
 - **Accepts manual entry.** Type a reading straight into the grid and the feature, the part verdict, the summary
   and the capability figures all update at once. Text that isn't a number is flagged instead of crashing the app.
 - **Imports and exports files.** Load an inspection plan (JSON) and readings exported from a CMM or gauge (CSV).
@@ -90,6 +92,20 @@ The sample study (`samples/bore-gauge-study.csv`) is ten bores measured three ti
 The air gauge comes out **marginal at 15.7% of the 0.018 mm tolerance**, with ndc = 10. The operator table shows
 why: Calum reads about 0.6 µm higher than Ali and Beth, so retraining or a better locating fixture is the next step.
 
+## Inspection history
+
+Inspections are saved to `%LOCALAPPDATA%\GaugeView\history.db`, one SQLite file the user can back up or copy.
+
+- **Records are only ever added.** An inspection is evidence of what was measured, so GaugeView never edits or
+  deletes one. Reopening an inspection restores its plan, readings and warning threshold exactly.
+- **Exact values.** Readings and tolerances are stored as invariant-culture text, not SQLite `REAL`, so 12.010 comes
+  back as 12.010. Times are stored as UTC ISO 8601, which also sorts correctly as text.
+- **Safe SQL.** Every value is a bound parameter, each save is a single transaction, and foreign keys are enforced.
+- **Versioned schema.** The schema version lives in `PRAGMA user_version`. Older files are upgraded in place by
+  numbered migrations; a file from a newer GaugeView is refused rather than modified.
+- **Trends across batches.** For any feature, one row per saved batch: n, mean, min, max, Cpk, Ppk and fails,
+  oldest first.
+
 ### Why `decimal`, not `double`
 
 In binary floating point, `0.7 + 0.1` is `0.7999999999999999`, so a part measured exactly on a 0.8 mm limit
@@ -101,15 +117,19 @@ to `double` for the statistics. A unit test covers this case.
 ```
 src/
   GaugeView.Core           tolerances, capability, SPC, gauge R&R, CSV/JSON I/O          net10.0
+  GaugeView.Data           SQLite inspection history (Microsoft.Data.Sqlite)             net10.0
   GaugeView.Presentation   view models, commands, dialog abstraction (no WPF reference)  net10.0
   GaugeView.Wpf            XAML views, converters, Windows dialogs                       net10.0-windows
 tests/
-  GaugeView.Core.Tests           tolerances, checker, inspector, capability, file formats
-  GaugeView.Presentation.Tests   view model behaviour, commands, editing, export
+  GaugeView.Core.Tests           tolerances, checker, capability, SPC rules, gauge R&R, file formats
+  GaugeView.Data.Tests           SQLite round trips, schema versioning, trends (real SQLite files)
+  GaugeView.Presentation.Tests   view model behaviour, commands, editing, export, history
 ```
 
 - **MVVM with a strict split.** The view models live in their own project with no reference to WPF. Everything
   except the XAML is unit-tested, and the tests run on Linux in CI as well as on Windows.
+- **Core has no dependencies.** It defines `IInspectionHistory`; `GaugeView.Data` implements it with SQLite, and
+  the view models only see the interface, so their tests use an in-memory fake.
 - **No logic in code-behind.** `MainWindow.xaml.cs` only calls `InitializeComponent()`. `App.xaml.cs` is the
   composition root that gives the view model real Windows dialogs; the tests use a fake `IDialogService`.
 - **Warnings are errors** across the solution, with nullable reference types on. Package versions are managed

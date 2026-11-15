@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using GaugeView.Core;
+using GaugeView.Core.History;
 using GaugeView.Core.IO;
 
 namespace GaugeView.Presentation;
@@ -27,7 +28,15 @@ public sealed class MainViewModel : ObservableObject
     private bool rechecking;
     private int manualPartCount;
 
-    public MainViewModel(IDialogService dialogs, string? sampleDirectory = null)
+    /// <param name="dialogs">File pickers and message boxes.</param>
+    /// <param name="sampleDirectory">Folder holding the sample files, if any.</param>
+    /// <param name="history">Where inspections are saved; null if history is unavailable.</param>
+    /// <param name="clock">Time source for saved inspections; the system clock by default.</param>
+    public MainViewModel(
+        IDialogService dialogs,
+        string? sampleDirectory = null,
+        IInspectionHistory? history = null,
+        TimeProvider? clock = null)
     {
         ArgumentNullException.ThrowIfNull(dialogs);
         this.dialogs = dialogs;
@@ -39,6 +48,7 @@ public sealed class MainViewModel : ObservableObject
         ExportReportCommand = new RelayCommand(ExportReport, () => Parts.Count > 0);
         LoadSampleCommand = new RelayCommand(LoadSample, () => SampleAvailable);
         GaugeRr = new GaugeRrViewModel(dialogs, sampleDirectory);
+        History = new HistoryViewModel(history, dialogs, clock ?? TimeProvider.System, Snapshot, Reopen);
     }
 
     public ObservableCollection<PartViewModel> Parts { get; } = [];
@@ -50,6 +60,9 @@ public sealed class MainViewModel : ObservableObject
 
     /// <summary>The gauge R&amp;R study for the Gauge R&amp;R tab.</summary>
     public GaugeRrViewModel GaugeRr { get; }
+
+    /// <summary>Saved inspections for the History tab.</summary>
+    public HistoryViewModel History { get; }
 
     public RelayCommand OpenPlanCommand { get; }
 
@@ -127,6 +140,7 @@ public sealed class MainViewModel : ObservableObject
         SelectedPart = null;
         OnPropertyChanged(nameof(PlanTitle));
         GaugeRr.SetPlan(plan);
+        History.SetPlan(plan);
         RefreshSummary();
         StatusMessage = $"Loaded plan {plan.PartNumber} with {plan.Features.Count} features.";
     }
@@ -145,6 +159,38 @@ public sealed class MainViewModel : ObservableObject
         StatusMessage =
             $"Inspected {TotalParts} parts: {FailCount} failed, {WarningCount} near a limit, {MissingCount} incomplete.";
     }
+
+    /// <summary>Shows a set of already-inspected parts, re-checked against the current threshold.</summary>
+    public void LoadInspections(IReadOnlyList<PartInspection> inspections)
+    {
+        ArgumentNullException.ThrowIfNull(inspections);
+        if (plan is null)
+            throw new InvalidOperationException("Load an inspection plan first.");
+
+        Parts.Clear();
+        foreach (var inspection in inspections)
+            AddPartViewModel(inspection);
+        SelectedPart = Parts.FirstOrDefault();
+        RefreshSummary();
+    }
+
+    /// <summary>Reopens a saved inspection with the plan and warning threshold it was saved with.</summary>
+    public void Reopen(SavedInspection saved)
+    {
+        ArgumentNullException.ThrowIfNull(saved);
+        WarningThresholdPercent = (double)(saved.WarningThreshold * 100);
+        LoadPlan(saved.Plan);
+        LoadInspections(saved.Parts);
+        SelectedTab = 0;
+
+        var record = saved.Record;
+        StatusMessage = $"Reopened batch {record.Batch} ({record.PartCount} parts), inspected by {record.Operator} " +
+                        $"on {record.LocalTime:d MMM yyyy HH:mm}.";
+    }
+
+    private InspectionSnapshot? Snapshot() => plan is null || Parts.Count == 0
+        ? null
+        : new InspectionSnapshot(plan, Parts.Select(p => p.ToInspection()).ToList(), checker.WarningThreshold);
 
     private void OpenPlan()
     {
@@ -251,6 +297,7 @@ public sealed class MainViewModel : ObservableObject
         }
 
         Spc.Update(plan, inspections);
+        History.NotifyInspectionChanged();
 
         ImportMeasurementsCommand.RaiseCanExecuteChanged();
         AddPartCommand.RaiseCanExecuteChanged();
